@@ -1,2 +1,4 @@
 # for venv
 .venv/
+__pycache__
+output/
