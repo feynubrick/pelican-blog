@@ -22,10 +22,13 @@ LINKS = (('Pelican', 'https://getpelican.com/'),
          ('You can modify those links in your config file', '#'),)
 
 # Social widget
-SOCIAL = (('You can add links in your config file', '#'),
-          ('Another social link', '#'),)
+# SOCIAL = (('You can add links in your config file', '#'),
+#           ('Another social link', '#'),)
 
+THEME = 'notmyidea'
 DEFAULT_PAGINATION = 10
+GITHUB_URL = 'https://github.com/feynubrick'
+GOOGLE_ANALYTICS = 'G-Z0MK5GNGXL'
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
