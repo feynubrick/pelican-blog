@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>개발자 오승윤의 기술 포트폴리오 - 언어와 프레임워크</title><link href="https://feynubrick.github.io/" rel="alternate"></link><link href="https://feynubrick.github.io/feeds/eoneowa-peureimweokeu.atom.xml" rel="self"></link><id>https://feynubrick.github.io/</id><updated>2023-01-19T21:53:00+09:00</updated><entry><title>pytest, 어떻게 사용할까?</title><link href="https://feynubrick.github.io/how-to-use-pytest.html" rel="alternate"></link><published>2023-01-19T21:53:00+09:00</published><updated>2023-01-19T21:53:00+09:00</updated><author><name>오승윤</name></author><id>tag:feynubrick.github.io,2023-01-19:/how-to-use-pytest.html</id><summary type="html">&lt;h1&gt;테스트의 단계&lt;/h1&gt;
+&lt;p&gt;테스트는 일반적으로 다음의 4단계의 절차로 이뤄진다고 생각할 수 있습니다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Arrange: 테스트하려는 행동을 하기 전에 필 …&lt;/li&gt;&lt;/ol&gt;</summary><content type="html">&lt;h1&gt;테스트의 단계&lt;/h1&gt;
+&lt;p&gt;테스트는 일반적으로 다음의 4단계의 절차로 이뤄진다고 생각할 수 있습니다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Arrange: 테스트하려는 행동을 하기 전에 필요한 모든 것을 수행합니다.&lt;/li&gt;
+&lt;li&gt;Act: 테스트하려고 하는 행동(behavior)을 시스템에 수행합니다.&lt;/li&gt;
+&lt;li&gt;Assert: 행위의 결과가 우리가 원하는 대로였는지 확인하는 단계입니다.&lt;/li&gt;
+&lt;li&gt;Cleanup: 다른 테스트가 이 테스트에 영향을 받지 않도록 정리합니다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;Arrange: fixture 사용&lt;/h1&gt;
+&lt;p&gt;E2E 테스트를 진행하면 테스트용 DB를 준비하고, 해당 DB에 연결할 클라이언트가 준비되어야 합니다. 또 테스트하려는 행동을 할 때 필요한 데이터도 준비해야 합니다. 바로 위에서 말한 Arrange 단계입니다. pytest에서는 &lt;a href="https://docs.pytest.org/en/7.2.x/explanation/fixtures.html#about-fixtures"&gt;fixture&lt;/a&gt;를 사용해 이 단계에 필요한 절차들을 함수로 작성해 사용할 수 있습니다.&lt;/p&gt;
+&lt;p&gt;fixture 데코레이터를 사용해 함수를 정의한 뒤 함수 이름과 같은 이름으로 테스트 함수의 input argument에 넣어주기만 하면, pytest가 해당 fixture 객체를 전체 테스트에서 사용할 수 있습니다. fixture는 테스트 함수 안에서 여러 개를 사용할 수도 있고 다른 fixture에 의존하는 fixture도 사용이 가능합니다. 하지만 fixture가 발생할 경우 예외를 raise하게 되고, pytest는 fixture 작동을 중단시키고 실패로 표시됩니다. 따라서 의존성을 신중히 만들 필요가 있습니다. 필수적인 것이 아니라면 제외해야할 것입니다. fixture의 결과는 캐시되기 때문에 같은 테스트 안에서 여러번 사용이 되어도 한번만 불러와서 리소스를 아낄 수 있습니다.&lt;/p&gt;
+&lt;p&gt;fixture의 특징을 요약하면 다음과 같습니다.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;함수에 &lt;code&gt;@pytest.fixture&lt;/code&gt; 데코레이터를 사용해서 fixture를 만들 수 있습니다.&lt;/li&gt;
+&lt;li&gt;테스트 함수의 input argument로 fixture 이름을 넣으면, 테스트 함수 내에서 사용할 수 있습니다.&lt;/li&gt;
+&lt;li&gt;한번에 여러개의 fixture를 사용할 수 있습니다. fixture는 순서대로 실행됩니다.&lt;/li&gt;
+&lt;li&gt;fixture는 다른 fixture를 요청할 수 있습니다.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.pytest.org/en/7.2.x/how-to/fixtures.html#autouse-fixtures-fixtures-you-don-t-have-to-request"&gt;autouse 옵션&lt;/a&gt;으로 테스트에서 특정 fixture를 input argument에 명시적으로 사용하지 않아도 매번 실행되도록 할 수 있습니다. fixture decorator의 옵션으로 넣어주면 사용가능합니다. autouse fixture는 해당 scope 내에서 가장 먼저 실행됩니다.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.pytest.org/en/7.2.x/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session"&gt;scope 옵션&lt;/a&gt;으로 fixture를 function, class, module, pacakage, session 안에서 공유할 수 있습니다. fixture decorator의 옵션으로 넣어주면 사용 가능합니다. scope에는 callable을 넣을 수 있어 &lt;a href="https://docs.pytest.org/en/7.2.x/how-to/fixtures.html#dynamic-scope"&gt;동적으로 scope를 변경&lt;/a&gt;할 수 있습니다. 아무 옵션도 넣지 않으면 scope는 function으로 설정됩니다. session scope로 되어 있는 fixture는 &lt;code&gt;conftest.py&lt;/code&gt; 파일에서 관리하는 것이 좋습니다.&lt;/li&gt;
+&lt;li&gt;한 스코프 안에서, fixture는 처음 한번만 실행되고, 그 결과가 캐시됩니다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;Cleanup: fixture 함수 안에서 yield 활용&lt;/h1&gt;
+&lt;p&gt;Arrange 단계에서 사용하는 fixture와 이를 마무리 짓는 Cleanup 단계가 밀접하게 관련이 있으므로, 먼저 살펴보도록 하겠습니다. pytest에서는 fixture에 &lt;a href="https://docs.pytest.org/en/7.2.x/how-to/fixtures.html#yield-fixtures-recommended"&gt;yield를 사용하는 것을 추천&lt;/a&gt;합니다. pytest가 fixture를 순서대로 요청한 뒤, 테스트가 끝나면 이 순서의 역순으로 다시 돌아갑니다. 따라서 yield문 다음에 Cleanup 로직을 추가하면 됩니다.&lt;/p&gt;
+&lt;p&gt;yield 이후의 작업은 fixture의 scope가 끝날 때 실행됩니다. 아래 예시를 보면 그것을 알 수 있습니다.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pytest&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;logging&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Create and configure logger&lt;/span&gt;
+&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;basicConfig&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filename&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;newfile.log&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nb"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%(asctime)s&lt;/span&gt;&lt;span class="s1"&gt; &lt;/span&gt;&lt;span class="si"&gt;%(message)s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="n"&gt;filemode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Creating an object&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getLogger&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Setting the threshold of logger to DEBUG&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;set logger&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="nd"&gt;@pytest&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fixture&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scope&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;class&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;value_a&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;value_a called&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;yield&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;
+    &lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;value_a after yeild&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestArithmetic&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nd"&gt;@pytest&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fixture&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;autouse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;autouse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;autouse called&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_addition&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_subtraction&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_multiplication&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;value_a&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;위 코드를 &lt;code&gt;pytest -o log_cli=true&lt;/code&gt; 의 명령어로 실행한 결과는 다음과 같습니다.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c"&gt;=============================================== test session starts ===============================================&lt;/span&gt;
+&lt;span class="c"&gt;platform darwin &lt;/span&gt;&lt;span class="nb"&gt;--&lt;/span&gt;&lt;span class="c"&gt; Python 3&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;10&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;8&lt;/span&gt;&lt;span class="nt"&gt;,&lt;/span&gt;&lt;span class="c"&gt; pytest&lt;/span&gt;&lt;span class="nb"&gt;-&lt;/span&gt;&lt;span class="c"&gt;7&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;2&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;1&lt;/span&gt;&lt;span class="nt"&gt;,&lt;/span&gt;&lt;span class="c"&gt; pluggy&lt;/span&gt;&lt;span class="nb"&gt;-&lt;/span&gt;&lt;span class="c"&gt;1&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;0&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;0&lt;/span&gt;
+&lt;span class="c"&gt;rootdir: /Users/feynubrick/dev/practice/pytest&lt;/span&gt;
+&lt;span class="c"&gt;collecting &lt;/span&gt;&lt;span class="nt"&gt;...&lt;/span&gt;
+&lt;span class="nb"&gt;-----------------------------------------------&lt;/span&gt;&lt;span class="c"&gt; live log collection &lt;/span&gt;&lt;span class="nb"&gt;-----------------------------------------------&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:15 set logger&lt;/span&gt;
+&lt;span class="c"&gt;collected 3 items&lt;/span&gt;
+
+&lt;span class="c"&gt;test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py::TestArithmetic::test_addition&lt;/span&gt;
+&lt;span class="nb"&gt;-------------------------------------------------&lt;/span&gt;&lt;span class="c"&gt; live log setup &lt;/span&gt;&lt;span class="nb"&gt;--------------------------------------------------&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:19 value_a called&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:26 autouse called&lt;/span&gt;
+&lt;span class="c"&gt;PASSED                                                                                                      &lt;/span&gt;&lt;span class="k"&gt;[&lt;/span&gt;&lt;span class="c"&gt; 33%&lt;/span&gt;&lt;span class="k"&gt;]&lt;/span&gt;
+&lt;span class="c"&gt;test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py::TestArithmetic::test_subtraction&lt;/span&gt;
+&lt;span class="nb"&gt;-------------------------------------------------&lt;/span&gt;&lt;span class="c"&gt; live log setup &lt;/span&gt;&lt;span class="nb"&gt;--------------------------------------------------&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:26 autouse called&lt;/span&gt;
+&lt;span class="c"&gt;PASSED                                                                                                      &lt;/span&gt;&lt;span class="k"&gt;[&lt;/span&gt;&lt;span class="c"&gt; 66%&lt;/span&gt;&lt;span class="k"&gt;]&lt;/span&gt;
+&lt;span class="c"&gt;test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py::TestArithmetic::test_multiplication&lt;/span&gt;
+&lt;span class="nb"&gt;-------------------------------------------------&lt;/span&gt;&lt;span class="c"&gt; live log setup &lt;/span&gt;&lt;span class="nb"&gt;--------------------------------------------------&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:26 autouse called&lt;/span&gt;
+&lt;span class="c"&gt;PASSED                                                                                                      &lt;/span&gt;&lt;span class="k"&gt;[&lt;/span&gt;&lt;span class="c"&gt;100%&lt;/span&gt;&lt;span class="k"&gt;]&lt;/span&gt;
+&lt;span class="nb"&gt;------------------------------------------------&lt;/span&gt;&lt;span class="c"&gt; live log teardown &lt;/span&gt;&lt;span class="nb"&gt;------------------------------------------------&lt;/span&gt;
+&lt;span class="c"&gt;DEBUG    root:test_arithmetic&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;py:21 value_a after yeild&lt;/span&gt;
+
+
+&lt;span class="c"&gt;================================================ 3 passed in 0&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;01s ================================================&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h1&gt;Act and Assert 정의: test function 사용&lt;/h1&gt;
+&lt;p&gt;시스템에 어떤 작용을 해서 그 결과가 우리가 의도한 대로 나오는지 확인하는 부분은 함수에서 실행합니다. &lt;code&gt;test_*&lt;/code&gt; 와 같은 형식의 이름의 함수에 테스트 내용을 정의하면, pytest가 해당 함수들만 실행해 결과를 확인합니다.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# content of test_assert1.py&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;f&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_function&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;예외(Exception)가 발생했는지 확인하려면 pytest.raises()를 context manager로 사용하면 됩니다.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pytest&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_zero_division&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;pytest&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;raises&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="ne"&gt;ZeroDivisionError&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;여러 테스트를 class 로 묶어서 실행할 수도 있습니다. 이때 class의 네이밍을 &lt;code&gt;Test*&lt;/code&gt; 와 같이 해야합니다.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestArithmetic&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_addition&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+      &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_subtraction&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+      &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h1&gt;Test 실행하기&lt;/h1&gt;
+&lt;p&gt;테스트 실행은 &lt;code&gt;pytest&lt;/code&gt; 명령으로 수행합니다. 이 명령어는 현재 디렉토리 및 서브디렉토리 안에 있는 test_&lt;em&gt;.py 또는 &lt;/em&gt;_test.py의 형식으로 된 모든 파일을 실행합니다(&lt;a href="https://docs.pytest.org/en/7.2.x/explanation/goodpractices.html#conventions-for-python-test-discovery"&gt;standard test discovery rule&lt;/a&gt;). &lt;code&gt;pytest.ini&lt;/code&gt;에 &lt;a href="https://docs.pytest.org/en/7.2.x/reference/reference.html#confval-testpaths"&gt;testpaths&lt;/a&gt;를 설정하면 등록된 디렉토리에서만 테스트를 수행합니다.&lt;/p&gt;
+&lt;p&gt;이외에도 특정 테스트들만 골라서 수행할 수 있는 방법들이 아래와 같이 있습니다.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;상황&lt;/th&gt;
+&lt;th&gt;방법&lt;/th&gt;
+&lt;th&gt;설명&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;특정 모듈 테스트&lt;/td&gt;
+&lt;td&gt;pytest test_mod.py&lt;/td&gt;
+&lt;td&gt;파일 안의 테스트 전체 수행&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;특정 디렉토리 안의 모든 테스트&lt;/td&gt;
+&lt;td&gt;pytest tests/&lt;/td&gt;
+&lt;td&gt;디렉토리 안의 모든 테스트 수행&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;특정 키워드 테스트&lt;/td&gt;
+&lt;td&gt;pytest -k “MyClass and not method”&lt;/td&gt;
+&lt;td&gt;현재 디렉토리와 그 서브 디렉토리에서 “MyClass”라는 키워드는 포함하지만 “method”라는 키워드는 포함하지 않는 테스트 수행 (대소문자 구별 X)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;노드 ID로 테스트&lt;/td&gt;
+&lt;td&gt;pytest test_mod.py::TestClass::test_method&lt;/td&gt;
+&lt;td&gt;특정 부분만 콕집어서 테스트&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;마커로 표시한 내용 테스트&lt;/td&gt;
+&lt;td&gt;pytest -m slow&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;@pytest.mark.slow&lt;/code&gt; 데코레이터로 표시한 테스트만 수행. (&lt;a href="https://docs.pytest.org/en/7.2.x/how-to/mark.html#mark"&gt;마커 사용법&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;명령어로 수행하는 방법 외에 python code에서 실행할 수 있는 방법도 있습니다. 해당 내용에 관해서는 &lt;a href="https://docs.pytest.org/en/7.2.x/how-to/usage.html#other-ways-of-calling-pytest"&gt;여기&lt;/a&gt;를 참조해주세요.&lt;/p&gt;</content><category term="언어와 프레임워크"></category><category term="python"></category><category term="testing"></category></entry></feed>
