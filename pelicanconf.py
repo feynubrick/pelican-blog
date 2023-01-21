@@ -1,6 +1,6 @@
 AUTHOR = '오승윤'
 SITENAME = "개발자 오승윤의 기술 포트폴리오"
-SITEURL = 'feynubrick.github.io'
+SITEURL = 'https://feynubrick.github.io'
 
 PATH = 'content'
 
