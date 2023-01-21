@@ -1,6 +1,6 @@
-AUTHOR = 'Seung-Yoon Oh'
-SITENAME = "feynubrick's Blog"
-SITEURL = ''
+AUTHOR = '오승윤'
+SITENAME = "개발자 오승윤의 기술 포트폴리오"
+SITEURL = 'feynubrick.github.io'
 
 PATH = 'content'
 
